@@ -52,7 +52,15 @@ else:
     st.divider()
 
     # SEARCH BAR
-    search = st.text_input("Search by Patient Account # / Invoice # / Patient Name")
+    st.markdown("## 🔍 Patient Search")
+
+search = st.text_input("Enter Patient Account # / Invoice # / Patient Name")
+
+st.markdown("### 🔎 Patient / Claim Search")
+st.markdown("---")
+
+search = st.text_input("", placeholder="Enter Patient Account # / Invoice # / Name")
+
 
 if search:
 
