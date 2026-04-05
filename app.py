@@ -1,29 +1,71 @@
 import streamlit as st
 from users import users
 
-st.set_page_config(page_title="AutoPost EHR", layout="centered")
+st.set_page_config(page_title="AutoPost EHR", layout="wide")
 
-st.title("AutoPost EHR")
-st.subheader("Login")
+# SESSION INIT
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.role = None
+    st.session_state.username = None
 
-username = st.text_input("Username")
-password = st.text_input("Password", type="password")
+# LOGIN PAGE
+if not st.session_state.logged_in:
 
-login_btn = st.button("Login")
+    st.title("AutoPost EHR")
+    st.subheader("Login")
 
-if st.button("Forgot Password"):
-    st.warning("Contact system administrator to reset password")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-# Login Logic
-if login_btn:
-    user_found = False
+    login_btn = st.button("Login")
 
-    for user in users:
-        if user["username"] == username and user["password"] == password:
-            user_found = True
-            st.success(f"Welcome {user['role'].upper()}!")
-            st.write(f"You are logged in as: {user['role']}")
-            break
+    if st.button("Forgot Password"):
+        st.warning("Contact system administrator to reset password")
 
-    if not user_found:
+    if login_btn:
+        for user in users:
+            if user["username"] == username and user["password"] == password:
+                st.session_state.logged_in = True
+                st.session_state.role = user["role"]
+                st.session_state.username = user["username"]
+                st.rerun()
+
         st.error("Invalid username or password")
+
+# DASHBOARD
+else:
+    st.title("AutoPost EHR Dashboard")
+
+    col1, col2 = st.columns([8, 2])
+
+    with col1:
+        st.write(f"Welcome, {st.session_state.username} ({st.session_state.role})")
+
+    with col2:
+        if st.button("Logout"):
+            st.session_state.logged_in = False
+            st.rerun()
+
+    st.divider()
+
+    # SEARCH BAR
+    search = st.text_input("Search by Patient Account # / Invoice # / Patient Name")
+
+    st.write("🔍 Enter value and we will fetch data (next step)")
+
+    st.divider()
+
+    # PLACEHOLDER SECTIONS
+    st.subheader("Modules")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.info("Patient Lookup")
+
+    with col2:
+        st.info("Claims")
+
+    with col3:
+        st.info("Payments")
