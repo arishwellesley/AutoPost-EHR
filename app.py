@@ -1,4 +1,3 @@
-
 import streamlit as st
 from modules.data_loader import patients_df, claims_df
 from users import users
@@ -11,7 +10,9 @@ if "logged_in" not in st.session_state:
     st.session_state.role = None
     st.session_state.username = None
 
+# =========================
 # LOGIN PAGE
+# =========================
 if not st.session_state.logged_in:
 
     st.title("AutoPost EHR")
@@ -35,7 +36,9 @@ if not st.session_state.logged_in:
 
         st.error("Invalid username or password")
 
+# =========================
 # DASHBOARD
+# =========================
 else:
     st.title("AutoPost EHR Dashboard")
 
@@ -51,62 +54,78 @@ else:
 
     st.divider()
 
-    # SEARCH BAR
-    st.markdown("## 🔍 Patient Search")
+    # =========================
+    # SEARCH SECTION
+    # =========================
+    st.markdown("## 🔍 Patient / Claim Search")
+    st.markdown("---")
 
-search = st.text_input("Enter Patient Account # / Invoice # / Patient Name")
+    search = st.text_input(
+        "",
+        placeholder="Enter Patient Account # / Invoice # / Patient Name"
+    )
 
-st.markdown("### 🔎 Patient / Claim Search")
-st.markdown("---")
+    if search:
 
-search = st.text_input("", placeholder="Enter Patient Account # / Invoice # / Name")
+        # CASE 1 — Patient Account #
+        if search.isdigit() and len(search) == 9:
+            result = claims_df[
+                claims_df["patient_account_number"] == int(search)
+            ]
 
+            if not result.empty:
+                st.subheader("Invoices for Patient")
 
-if search:
+                display = result[
+                    ["invoice_number", "date_of_service", "billed_amount"]
+                ]
 
-    # CASE 1 — Patient Account #
-    if search.isdigit() and len(search) == 9:
-        result = claims_df[claims_df["patient_account_number"] == int(search)]
+                st.dataframe(display)
 
-        if not result.empty:
-            st.subheader("Invoices for Patient")
+            else:
+                st.warning("No records found")
 
-            display = result[["invoice_number", "date_of_service", "billed_amount"]]
-            st.dataframe(display)
+        # CASE 2 — Invoice #
+        elif search.isdigit():
+            result = claims_df[
+                claims_df["invoice_number"] == int(search)
+            ]
+
+            if not result.empty:
+                st.success("Invoice found")
+                st.dataframe(result)
+
+            else:
+                st.warning("Invoice not found")
+
+        # CASE 3 — Patient Name
         else:
-            st.warning("No records found")
+            result = patients_df[
+                patients_df["patient_name"].str.contains(search, case=False)
+            ]
 
-    # CASE 2 — Invoice #
-    elif search.isdigit():
-        result = claims_df[claims_df["invoice_number"] == int(search)]
+            if not result.empty:
+                st.subheader("Matching Patients")
 
-        if not result.empty:
-            st.success("Invoice found")
-            st.dataframe(result)
-        else:
-            st.warning("Invoice not found")
+                display = result[
+                    [
+                        "patient_name",
+                        "date_of_birth",
+                        "patient_account_number",
+                        "primary_member_number",
+                    ]
+                ]
 
-    # CASE 3 — Patient Name
-    else:
-        result = patients_df[patients_df["patient_name"].str.contains(search, case=False)]
+                st.dataframe(display)
 
-        if not result.empty:
-            st.subheader("Matching Patients")
-
-            display = result[[
-                "patient_name",
-                "date_of_birth",
-                "patient_account_number",
-                "primary_member_number"
-            ]]
-
-            st.dataframe(display)
-        else:
-            st.warning("No patients found")
+            else:
+                st.warning("No patients found")
 
     st.divider()
 
-    # PLACEHOLDER SECTIONS
+    # =========================
+    # MODULES SECTION
+    # =========================
     st.subheader("Modules")
 
     col1, col2, col3 = st.columns(3)
