@@ -1,5 +1,6 @@
-users = [
-    {"username": "admin", "password": "admin123", "role": "admin"},
-    {"username": "manager1", "password": "manager123", "role": "manager"},
-    {"username": "user1", "password": "user123", "role": "user"},
-]
+import pandas as pd
+
+# Load Excel
+df = pd.read_excel("D:\\AutoPost-EHR\\Data\\users_v2.xlsx")
+
+users = df.to_dict(orient="records")
