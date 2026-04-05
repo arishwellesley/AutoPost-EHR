@@ -1,4 +1,6 @@
+
 import streamlit as st
+from modules.data_loader import patients_df, claims_df
 from users import users
 
 st.set_page_config(page_title="AutoPost EHR", layout="wide")
@@ -52,7 +54,47 @@ else:
     # SEARCH BAR
     search = st.text_input("Search by Patient Account # / Invoice # / Patient Name")
 
-    st.write("🔍 Enter value and we will fetch data (next step)")
+if search:
+
+    # CASE 1 — Patient Account #
+    if search.isdigit() and len(search) == 9:
+        result = claims_df[claims_df["patient_account_number"] == int(search)]
+
+        if not result.empty:
+            st.subheader("Invoices for Patient")
+
+            display = result[["invoice_number", "date_of_service", "billed_amount"]]
+            st.dataframe(display)
+        else:
+            st.warning("No records found")
+
+    # CASE 2 — Invoice #
+    elif search.isdigit():
+        result = claims_df[claims_df["invoice_number"] == int(search)]
+
+        if not result.empty:
+            st.success("Invoice found")
+            st.dataframe(result)
+        else:
+            st.warning("Invoice not found")
+
+    # CASE 3 — Patient Name
+    else:
+        result = patients_df[patients_df["patient_name"].str.contains(search, case=False)]
+
+        if not result.empty:
+            st.subheader("Matching Patients")
+
+            display = result[[
+                "patient_name",
+                "date_of_birth",
+                "patient_account_number",
+                "primary_member_number"
+            ]]
+
+            st.dataframe(display)
+        else:
+            st.warning("No patients found")
 
     st.divider()
 
