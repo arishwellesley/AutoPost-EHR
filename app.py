@@ -65,6 +65,10 @@ else:
         placeholder="Enter Patient Account # / Invoice # / Patient Name"
     )
 
+    # Reset selected invoice when new search
+    if search:
+        st.session_state.pop("selected_invoice", None)
+
     if search:
 
         # CASE 1 — Patient Account #
@@ -82,6 +86,15 @@ else:
 
                 st.dataframe(display)
 
+                # ✅ SELECT INVOICE
+                selected_invoice = st.selectbox(
+                    "Select Invoice to View Details",
+                    display["invoice_number"]
+                )
+
+                if selected_invoice:
+                    st.session_state.selected_invoice = selected_invoice
+
             else:
                 st.warning("No records found")
 
@@ -93,7 +106,8 @@ else:
 
             if not result.empty:
                 st.success("Invoice found")
-                st.dataframe(result)
+
+                st.session_state.selected_invoice = int(search)
 
             else:
                 st.warning("Invoice not found")
@@ -120,6 +134,28 @@ else:
 
             else:
                 st.warning("No patients found")
+
+    # =========================
+    # CLAIM DASHBOARD
+    # =========================
+    if "selected_invoice" in st.session_state:
+
+        st.divider()
+        st.subheader("📄 Claim Details")
+
+        claim_data = claims_df[
+            claims_df["invoice_number"] == st.session_state.selected_invoice
+        ]
+
+        if not claim_data.empty:
+            st.write("Invoice Number:", st.session_state.selected_invoice)
+
+            st.dataframe(claim_data)
+
+            # Back Button
+            if st.button("⬅ Back to Search"):
+                del st.session_state.selected_invoice
+                st.rerun()
 
     st.divider()
 
